@@ -11,12 +11,6 @@
                     <option value="美国">美国</option>
                     <!-- 添加更多国家选项 -->
                 </select>
-                <select class="language-select">
-                    <option value="">编程语言</option>
-                    <option value="JavaScript">JavaScript</option>
-                    <option value="Python">Python</option>
-                    <!-- 添加更多编程语言选项 -->
-                </select>
         </div>
         
             <div v-for="user in filteredList" :key="user.id" class="user-card">
@@ -114,8 +108,12 @@ async function fetchUsers() {
   try {
     console.log('获取用户信息');
     const response = await axios.get('http://localhost:8088/developer/find');
-    console.log(response.data);
-    list.value = response.data;
+    list.value = response.data.map(user => ({
+      ...user,
+      talent_rank: calculateTalentRank(user)
+    }));
+    // Sort users by talent rank in descending order
+    list.value.sort((a, b) => b.talent_rank - a.talent_rank);
     console.log(list.value);
   } catch (err) {
     err.value = '请求失败，请稍后再试。';
@@ -131,8 +129,8 @@ const filteredList = computed(() => {
     return list.value;
   }
   var res = list.value.filter(item =>
-    item.username.toLowerCase().includes(value.value.toLowerCase()) ||
-    item.nation.toLowerCase().includes(value.value.toLowerCase())
+    item?.username?.toLowerCase().includes(value.value.toLowerCase()) ||
+    item?.nation?.toLowerCase().includes(value.value.toLowerCase())
   );
   if(res.length === 0) return list.value;
   return res;
